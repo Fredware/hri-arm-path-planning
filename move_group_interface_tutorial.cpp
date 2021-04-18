@@ -288,27 +288,37 @@ moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 const moveit::core::JointModelGroup* joint_model_group =
     move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
 
+moveit::core::RobotState joint_state_home(*move_group.getCurrentState());
+
 moveit::core::RobotState joint_state_goal(*move_group.getCurrentState());
 
 geometry_msgs::Pose goal_pose;
-goal_pose.orientation.x = sqrt(2)/2;
-goal_pose.orientation.y = sqrt(2)/2;
-goal_pose.orientation.z = 0;
-goal_pose.orientation.w = 0;
-goal_pose.position.x = 0.70;
-goal_pose.position.y = 0;
-goal_pose.position.z = 0.70;
+goal_pose.orientation.x = 0.155352;
+goal_pose.orientation.y = 0.878563;
+goal_pose.orientation.z = 0.448136;
+goal_pose.orientation.w = -0.0562776;
+goal_pose.position.x = 0.48;
+goal_pose.position.y = -0.16;
+goal_pose.position.z = 0.16;
 
-joint_state_goal.setFromIK(joint_model_group, goal_pose);
+joint_state_goal.setFromIK(joint_model_group, goal_pose, 5, 10.0);
 move_group.setStartStateToCurrentState();
 move_group.setJointValueTarget(joint_state_goal);
 
-moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+move_group.setGoalTolerance(0.01);
 
+moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 ROS_INFO_NAMED("tutorial", "Planning from Joint Space: %s", success ? "" : "FAILED");
+// move_group.move();
+move_group.execute(my_plan);
 
-move_group.move();
+move_group.setStartStateToCurrentState();
+move_group.setJointValueTarget(joint_state_home);
+move_group.setGoalTolerance(0.01);
+success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+ROS_INFO_NAMED("tutorial", "Planning from Joint Space: %s", success ? "" : "FAILED");
+move_group.execute(my_plan);
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
