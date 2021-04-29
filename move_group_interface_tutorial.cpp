@@ -275,7 +275,77 @@ int main(int argc, char** argv)
   // move_group.setPlanningTime(10.0);
   // //
   // ROS_INFO_NAMED("tutorial", "Visualizing plan 3 (constraints) %s", success ? "" : "FAILED");
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+ros::Publisher planning_scene_diff_publisher = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+ros::WallDuration sleep_t(0.5);
+while (planning_scene_diff_publisher.getNumSubscribers()<1)
+{
+  sleep_t.sleep();
+}
+moveit_msgs::AttachedCollisionObject attached_table;
+attached_table.link_name = "base_link";
+attached_table.object.header.frame_id = "world";
+attached_table.object.id = "table";
 
+geometry_msgs::Pose object_pose;
+object_pose.position.x = 0;
+object_pose.position.y = 0;
+object_pose.position.z = -0.7;
+object_pose.orientation.w = 1.0;
+
+shape_msgs::SolidPrimitive primitive;
+primitive.type = primitive.BOX;
+primitive.dimensions.resize(3);
+primitive.dimensions[0] = 1;
+primitive.dimensions[1] = 1;
+primitive.dimensions[2] = 1;
+
+attached_table.object.primitives.push_back(primitive);
+attached_table.object.primitive_poses.push_back(object_pose);
+
+moveit_msgs::PlanningScene planning_scene;
+planning_scene.world.collision_objects.push_back(attached_table.object);
+///
+moveit_msgs::AttachedCollisionObject some_object;
+some_object.link_name = "base_link";
+some_object.object.header.frame_id = "world";
+some_object.object.id = "box1";
+
+object_pose.position.z = 0.5;
+object_pose.orientation.w = 1.0;
+
+primitive.dimensions[0] = 0.075;
+primitive.dimensions[1] = 0.075;
+primitive.dimensions[2] = 0.075;
+
+some_object.object.primitives.push_back(primitive);
+some_object.object.primitive_poses.push_back(object_pose);
+
+planning_scene.world.collision_objects.push_back(some_object.object);
+///
+moveit_msgs::AttachedCollisionObject another_object;
+another_object.link_name = "base_link";
+another_object.object.header.frame_id = "world";
+another_object.object.id = "box2";
+
+object_pose.position.x = 0.15;
+object_pose.position.y = -0.25;
+object_pose.position.z = 0.25;
+object_pose.orientation.w = 1.0;
+
+primitive.dimensions[0] = 0.1;
+primitive.dimensions[1] = 0.1;
+primitive.dimensions[2] = 0.1;
+
+another_object.object.primitives.push_back(primitive);
+another_object.object.primitive_poses.push_back(object_pose);
+
+planning_scene.world.collision_objects.push_back(another_object.object);
+///
+planning_scene.is_diff = true;
+planning_scene_diff_publisher.publish(planning_scene);
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -323,6 +393,9 @@ move_group.execute(my_plan);
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
   //
   // // Visualize the plan in RViz
